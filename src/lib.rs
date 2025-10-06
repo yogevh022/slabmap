@@ -149,6 +149,12 @@ impl<K: Hash + Eq, V: Clone> SlabMap<K, V> {
         }
     }
 
+    pub fn iter(&self) -> impl Iterator<Item = (&K, &V)> {
+        self.hashmap
+            .iter()
+            .map(|(k, &idx)| (k, unsafe { self.slab.get_unchecked(idx) }))
+    }
+
     pub fn insert(&mut self, key: K, value: V) -> usize {
         match self.hashmap.get(&key) {
             Some(&idx) => unsafe {
