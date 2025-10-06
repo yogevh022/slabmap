@@ -53,7 +53,7 @@ impl<T: Clone> BitmapSlab<T> {
         let byte = index / WORD_BITS;
         let bit = index % WORD_BITS;
         self.cursor = self.cursor.min(byte);
-        let byte = &mut self.bitmap[self.cursor];
+        let byte = &mut self.bitmap[byte];
         if Self::bitmap_bit_is_one(byte, bit) {
             Self::bitmap_set_bit_zero(byte, bit);
             Some(self.data[index].clone())
@@ -116,7 +116,7 @@ impl<T: Clone> BitmapSlab<T> {
     pub unsafe fn remove_unchecked(&mut self, index: usize) -> T {
         let byte = index / WORD_BITS;
         let bit = index % WORD_BITS;
-        Self::bitmap_set_bit_zero(&mut self.bitmap[self.cursor], bit);
+        Self::bitmap_set_bit_zero(&mut self.bitmap[byte], bit);
         self.cursor = self.cursor.min(byte);
         self.data[index].clone()
     }

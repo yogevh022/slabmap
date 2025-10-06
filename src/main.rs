@@ -11,7 +11,7 @@ macro_rules! timed {
 }
 
 fn main() {
-    const COUNT: usize = 1 << 22;
+    const COUNT: usize = 1 << 20;
 
     let mut slabmap: SlabMap<usize, usize> = SlabMap::with_capacity(COUNT);
 
