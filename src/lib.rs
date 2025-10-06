@@ -167,9 +167,9 @@ impl<K: Hash + Eq, V: Clone> SlabMap<K, V> {
         self.hashmap.get(key).and_then(|&idx| self.slab.get(idx))
     }
 
-    pub fn remove(&mut self, key: &K) -> Option<V> {
+    pub fn remove(&mut self, key: &K) -> Option<(usize, V)> {
         let idx = self.hashmap.remove(key)?;
-        self.slab.remove(idx)
+        self.slab.remove(idx).map(|v| (idx, v))
     }
 
     pub unsafe fn get_unchecked(&self, key: &K) -> &V {
@@ -177,8 +177,8 @@ impl<K: Hash + Eq, V: Clone> SlabMap<K, V> {
         unsafe { self.slab.get_unchecked(idx) }
     }
 
-    pub unsafe fn remove_unchecked(&mut self, key: &K) -> V {
+    pub unsafe fn remove_unchecked(&mut self, key: &K) -> (usize, V) {
         let idx = self.hashmap.remove(key).unwrap();
-        unsafe { self.slab.remove_unchecked(idx) }
+        unsafe { (idx, self.slab.remove_unchecked(idx)) }
     }
 }
