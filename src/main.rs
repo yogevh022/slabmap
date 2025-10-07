@@ -27,24 +27,21 @@ fn main() {
     //
     // println!("time: {:?}", q);
 
-    const COUNT: usize = 1 << 10;
+    const COUNT: usize = 1 << 16;
     let mut bitslab  = SlabMap::<usize, usize>::with_capacity(COUNT);
 
     let mut indices = Vec::new();
-    for i in 0..12 {
+    for i in 0..1<<12 {
         let q = bitslab.insert(i, i*40000);
-        println!("inserted: {:?}:{:?} -> {:?}", i, i*40000, q);
         indices.push(q);
     }
 
-    for i in 0..5 {
+    for i in 0..1<<8 {
         let q = bitslab.remove(&(i*10));
-        println!("removed: {:?} -> {:?}", i*10, q);
     }
 
-    for i in 0..22 {
+    for i in 0..1<<12 {
         let q = bitslab.insert(i*2, i*2*40000);
-        println!("inserted: {:?}:{:?} -> {:?}", i*2, i*2*40000, q);
         indices.push(q);
     }
 }

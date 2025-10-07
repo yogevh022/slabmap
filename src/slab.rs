@@ -98,10 +98,14 @@ impl<T: Clone> BitmapSlab<T> {
         *mem_byte_ptr = unsafe { mem_byte_ptr.byte_add(size_of::<T>()) };
     }
 
-    fn mapping_from_index(index: usize) -> (usize, usize) {
-        let fli = index / (WORD_BITS * WORD_BITS);
-        let sli = index % WORD_BITS;
+    fn mapping_from_index(&self, index: usize) -> (usize, usize) {
+        let fli = index / self.fl_step;
+        let sli = (index % self.fl_step) / self.sl_step;
         (fli, sli)
+    }
+
+    fn mem_slot_offset_from_mapping(&self, fli: usize, sli: usize) -> usize {
+        fli * self.fl_step + sli * self.sl_step
     }
 
     fn free_slot_index_from_mapping(fli: usize, sli: usize) -> usize {
@@ -109,8 +113,9 @@ impl<T: Clone> BitmapSlab<T> {
     }
 
     fn release_slot(&mut self, index: usize) {
-        let (fli, sli) = Self::mapping_from_index(index);
+        let (fli, sli) = self.mapping_from_index(index);
         let free_slot_index = Self::free_slot_index_from_mapping(fli, sli);
+        let mem_slot_offset = self.mem_slot_offset_from_mapping(fli, sli);
         let sl_word = &mut self.sl_bitmap[fli];
 
         let free_slot = unsafe {
@@ -131,7 +136,7 @@ impl<T: Clone> BitmapSlab<T> {
             *slot_ptr = free_slot.next;
         }
 
-        free_slot.next = (index - free_slot_index) as u8;
+        free_slot.next = (index - mem_slot_offset) as u8;
     }
 
     fn claim_available_slot(&mut self) -> AllocResult<usize> {
@@ -149,10 +154,12 @@ impl<T: Clone> BitmapSlab<T> {
         // pop head of available slots linked list
         let free_slot = unsafe {
             // fli will never be >= WORD_BITS, because in that case fl_bitmap is max (Err)
-            self.free_slots.get_unchecked_mut(fli * WORD_BITS + sli)
+            let free_slot_index = Self::free_slot_index_from_mapping(fli, sli);
+            self.free_slots.get_unchecked_mut(free_slot_index)
         };
         debug_assert!(free_slot.has_next());
 
+        // hand written mem_ptr offset logic because of borrow checker
         let ptr_offset = fli * self.fl_step + sli * self.sl_step + free_slot.next as usize;
         free_slot.next = unsafe { (*(self.mem_ptr.add(ptr_offset) as *const FreeSlot)).next };
 
@@ -180,7 +187,7 @@ impl<T: Clone> BitmapSlab<T> {
     }
 
     pub fn get(&self, index: usize) -> Option<&T> {
-        let (fli, sli) = Self::mapping_from_index(index);
+        let (fli, sli) = self.mapping_from_index(index);
         if self.sl_bitmap[fli].is_bit_one(sli) {
             Some(&self.mem[index])
         } else {
