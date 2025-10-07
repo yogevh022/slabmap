@@ -16,9 +16,7 @@ impl<K: Hash + Eq, V: Clone> SlabMap<K, V> {
     }
 
     pub fn iter(&self) -> impl Iterator<Item = (&K, &V)> {
-        self.hashmap
-            .iter()
-            .map(|(k, &idx)| (k, unsafe { self.slab.get_unchecked(idx) }))
+        self.hashmap.iter().map(|(k, &idx)| (k, self.slab.get(idx)))
     }
 
     pub fn insert(&mut self, key: K, value: V) -> usize {
@@ -36,7 +34,9 @@ impl<K: Hash + Eq, V: Clone> SlabMap<K, V> {
     }
 
     pub fn get(&self, key: &K) -> Option<&V> {
-        self.hashmap.get(key).and_then(|&idx| self.slab.get(idx))
+        self.hashmap
+            .get(key)
+            .and_then(|&idx| Some(self.slab.get(idx)))
     }
 
     pub fn remove(&mut self, key: &K) -> Option<(usize, V)> {
@@ -46,6 +46,6 @@ impl<K: Hash + Eq, V: Clone> SlabMap<K, V> {
 
     pub unsafe fn get_unchecked(&self, key: &K) -> &V {
         let idx = self.hashmap[key];
-        unsafe { self.slab.get_unchecked(idx) }
+        self.slab.get(idx)
     }
 }

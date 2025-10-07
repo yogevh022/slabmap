@@ -186,21 +186,12 @@ impl<T: Clone> BitmapSlab<T> {
         Some(value)
     }
 
-    pub fn get(&self, index: usize) -> Option<&T> {
-        let (fli, sli) = self.mapping_from_index(index);
-        if self.sl_bitmap[fli].is_bit_one(sli) {
-            Some(&self.mem[index])
-        } else {
-            None
-        }
+    pub fn get(&self, index: usize) -> &T {
+        &self.mem[index]
     }
 
     pub fn capacity(&self) -> usize {
         self.capacity
-    }
-
-    pub unsafe fn get_unchecked(&self, index: usize) -> &T {
-        &self.mem[index]
     }
 
     pub unsafe fn set_unsafe(&mut self, value: T, index: usize) {
