@@ -25,7 +25,7 @@ impl FreeSlot {
     }
 }
 
-pub struct BitmapSlab2<T: Clone> {
+pub struct BitmapSlab<T: Clone> {
     capacity: usize,
     sl_step: usize,
     fl_step: usize,
@@ -36,7 +36,7 @@ pub struct BitmapSlab2<T: Clone> {
     mem: Box<[T]>,
 }
 
-impl<T: Clone> BitmapSlab2<T> {
+impl<T: Clone> BitmapSlab<T> {
     pub fn with_capacity(capacity: usize) -> Self {
         // fixme mask fl instead of aligning with huge values
         let sl_step = (capacity as f64 / (WORD_BITS * WORD_BITS) as f64).ceil() as usize;
@@ -97,27 +97,40 @@ impl<T: Clone> BitmapSlab2<T> {
         *mem_byte_ptr = unsafe { mem_byte_ptr.byte_add(size_of::<T>()) };
     }
 
-    fn set_bitmap_free(&mut self, fli: usize, sli: usize) {
-        let sl_word = &mut self.sl_bitmap[fli];
-        if sl_word.is_max() {
-            self.fl_bitmap.set_bit_zero(fli);
-        }
-        sl_word.set_bit_zero(sli);
-    }
-
-    fn free_slot(&mut self, index: usize) {
+    fn mapping_from_index(index: usize) -> (usize, usize) {
         let fli = index / (WORD_BITS * WORD_BITS);
         let sli = index % WORD_BITS;
-        let layers_offset = fli * WORD_BITS + sli;
+        (fli, sli)
+    }
 
-        let free_slot = &mut self.free_slots[layers_offset];
+    fn free_slot_index_from_mapping(fli: usize, sli: usize) -> usize {
+        fli * WORD_BITS + sli
+    }
+
+    fn release_slot(&mut self, index: usize) {
+        let (fli, sli) = Self::mapping_from_index(index);
+        let free_slot_index = Self::free_slot_index_from_mapping(fli, sli);
+        let sl_word = &mut self.sl_bitmap[fli];
+
+        let free_slot = unsafe {
+            // fli will never be >= WORD_BITS, because in that case fl_bitmap is max (Err)
+            self.free_slots.get_unchecked_mut(free_slot_index)
+        };
+
+        // if current free head is null, set bitmap to free
+        if !free_slot.has_next() {
+            if sl_word.is_max() {
+                self.fl_bitmap.set_bit_zero(fli);
+            }
+            sl_word.set_bit_zero(sli);
+        }
 
         unsafe {
             let slot_ptr = self.mem_ptr.add(index) as *mut SlotOffset;
             *slot_ptr = free_slot.next;
         }
 
-        free_slot.next = (index - layers_offset) as u8;
+        free_slot.next = (index - free_slot_index) as u8;
     }
 
     fn claim_available_slot(&mut self) -> AllocResult<usize> {
@@ -142,7 +155,7 @@ impl<T: Clone> BitmapSlab2<T> {
         let ptr_offset = fli * self.fl_step + sli * self.sl_step + free_slot.next as usize;
         free_slot.next = unsafe { (*(self.mem_ptr.add(ptr_offset) as *const FreeSlot)).next };
 
-        // if new head is null, set bitmap to used
+        // if new free head is null, set bitmap to used
         if !free_slot.has_next() {
             sl_word.set_bit_one(sli);
             if sl_word.is_max() {
@@ -159,9 +172,26 @@ impl<T: Clone> BitmapSlab2<T> {
         Ok(slab_index)
     }
 
-    pub fn remove(&mut self, index: usize) -> AllocResult<T> {
+    pub fn remove(&mut self, index: usize) -> Option<T> {
         let value = self.mem[index].clone();
-        self.free_slot(index);
-        Ok(value)
+        self.release_slot(index);
+        Some(value)
+    }
+
+    pub fn get(&self, index: usize) -> Option<&T> {
+        let (fli, sli) = Self::mapping_from_index(index);
+        if self.sl_bitmap[fli].is_bit_one(sli) {
+            Some(&self.mem[index])
+        } else {
+            None
+        }
+    }
+
+    pub unsafe fn get_unchecked(&self, index: usize) -> &T {
+        &self.mem[index]
+    }
+
+    pub unsafe fn set_unsafe(&mut self, value: T, index: usize) {
+        self.mem[index] = value;
     }
 }

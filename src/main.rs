@@ -1,3 +1,5 @@
+use slabmap::SlabMap;
+
 mod slab;
 
 #[macro_export]
@@ -11,6 +13,11 @@ macro_rules! timed {
 }
 
 fn main() {
-    const COUNT: usize = 1 << 24;
-    let mut bitslab = slab::BitmapSlab2::<usize>::with_capacity(COUNT);
+    const COUNT: usize = 1 << 4;
+    let mut bitslab  = SlabMap::<usize, usize>::with_capacity(COUNT);
+    for i in 0..COUNT {
+        bitslab.insert(i, i);
+    }
+    
+    
 }

@@ -19,4 +19,4 @@ dependencies = [
 [[package]]
 name = "word_bitmap"
 version = "0.1.0"
-source = "git+https://github.com/yogevh022/word_bitmap#39f257a09290553c850df49a960c0250c20eb5bd"
+source = "git+https://github.com/yogevh022/word_bitmap#c8cf48ec0cc27b5c096ea2d6461f42471013540d"
