@@ -1,4 +1,3 @@
-use std::ops::Deref;
 use std::ptr::slice_from_raw_parts_mut;
 use word_bitmap;
 use word_bitmap::BitMap;
@@ -27,14 +26,14 @@ impl FreeSlot {
 }
 
 pub struct BitmapSlab2<T: Clone> {
-    pub(crate) capacity: usize,
+    capacity: usize,
     sl_step: usize,
     fl_step: usize,
     fl_bitmap: BitMap<Word>,
     sl_bitmap: Box<[BitMap<Word>]>,
     free_slots: Box<[FreeSlot]>,
     mem_ptr: *mut T,
-    pub mem: Box<[T]>, // fixme
+    mem: Box<[T]>,
 }
 
 impl<T: Clone> BitmapSlab2<T> {
