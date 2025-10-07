@@ -1,3 +1,5 @@
+mod slab;
+
 use rustc_hash::FxHashMap;
 use std::hash::Hash;
 

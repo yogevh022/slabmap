@@ -1,5 +1,6 @@
+use std::hint::black_box;
 use slabmap::SlabMap;
-
+mod slab;
 #[macro_export]
 macro_rules! timed {
     ($block:block) => {{
@@ -13,20 +14,24 @@ macro_rules! timed {
 fn main() {
     const COUNT: usize = 1 << 20;
 
+    let mut bitslab = slab::BitmapSlab2::<usize>::with_capacity(COUNT);
+
+    let bitslab_time = timed!({
+        for i in 0..COUNT {
+            // let z = bitslab.insert(i);
+            let z = bitslab.q();
+            black_box(z);
+        }
+    });
+
+    println!("bitslab: {:?}", bitslab_time);
+
     let mut slabmap: SlabMap<usize, usize> = SlabMap::with_capacity(COUNT);
 
     let sm = timed!({
-        for i in 1..COUNT/2 {
-            let base_i = i * 6;
-            let q = slabmap.insert(i-1, i);
-            let q2 = slabmap.insert(i-2, i);
-            let q3 = slabmap.insert(i-3, i);
-            let q4 = slabmap.insert(i-4, i);
-            let q5 = slabmap.insert(i-5, i);
-            unsafe { slabmap.remove_unchecked(&(i-4)) };
-            let q6 = slabmap.insert(i-6, i);
-            unsafe { slabmap.remove_unchecked(&(i-5)) };
-            unsafe { slabmap.remove_unchecked(&(i-2)) };
+        for i in 0..COUNT {
+            let q = slabmap.insert(i, i);
+            black_box(q);
         }
     });
 
