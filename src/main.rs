@@ -1,6 +1,9 @@
-use slabmap::SlabMap;
-
 mod slab;
+mod map;
+
+use map::SlabMap;
+use std::hint::black_box;
+
 
 #[macro_export]
 macro_rules! timed {
@@ -13,11 +16,14 @@ macro_rules! timed {
 }
 
 fn main() {
-    const COUNT: usize = 1 << 4;
-    let mut bitslab  = SlabMap::<usize, usize>::with_capacity(COUNT);
-    for i in 0..COUNT {
-        bitslab.insert(i, i);
-    }
-    
-    
+    const COUNT: usize = 1 << 19;
+    let mut sm = SlabMap::<usize, usize>::with_capacity(COUNT);
+    let q = timed!({
+        for i in 0..COUNT {
+            let q = sm.insert(i, i);
+            black_box(q);
+        }
+    });
+
+    println!("time: {:?}", q);
 }

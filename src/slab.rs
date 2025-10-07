@@ -38,7 +38,8 @@ pub struct BitmapSlab<T: Clone> {
 
 impl<T: Clone> BitmapSlab<T> {
     pub fn with_capacity(capacity: usize) -> Self {
-        // fixme mask fl instead of aligning with huge values
+        assert!(capacity < WORD_BITS * WORD_BITS * MAX_SLOT_OFFSET);
+        // todo mask fl instad of huge alignments?
         let sl_step = (capacity as f64 / (WORD_BITS * WORD_BITS) as f64).ceil() as usize;
         let fl_step = sl_step * WORD_BITS;
         let aligned_capacity = fl_step * WORD_BITS;
@@ -163,7 +164,7 @@ impl<T: Clone> BitmapSlab<T> {
             }
         }
 
-        Ok(ptr_offset / size_of::<T>())
+        Ok(ptr_offset)
     }
 
     pub fn insert(&mut self, value: T) -> AllocResult<usize> {
@@ -185,6 +186,10 @@ impl<T: Clone> BitmapSlab<T> {
         } else {
             None
         }
+    }
+
+    pub fn capacity(&self) -> usize {
+        self.capacity
     }
 
     pub unsafe fn get_unchecked(&self, index: usize) -> &T {
