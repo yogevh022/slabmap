@@ -4,7 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+word_bitmap = { git = "https://github.com/yogevh022/word_bitmap" }
 rustc-hash = "2.1.1"
+slab = "0.4.11"
 
 [profile.release]
 debug = true
