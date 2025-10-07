@@ -13,4 +13,10 @@ name = "slabmap"
 version = "0.1.0"
 dependencies = [
  "rustc-hash",
+ "word_bitmap",
 ]
+
+[[package]]
+name = "word_bitmap"
+version = "0.1.0"
+source = "git+https://github.com/yogevh022/word_bitmap#c8cf48ec0cc27b5c096ea2d6461f42471013540d"

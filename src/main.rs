@@ -1,5 +1,7 @@
 use slabmap::SlabMap;
 
+mod slab;
+
 #[macro_export]
 macro_rules! timed {
     ($block:block) => {{
@@ -11,24 +13,11 @@ macro_rules! timed {
 }
 
 fn main() {
-    const COUNT: usize = 1 << 20;
-
-    let mut slabmap: SlabMap<usize, usize> = SlabMap::with_capacity(COUNT);
-
-    let sm = timed!({
-        for i in 1..COUNT/2 {
-            let base_i = i * 6;
-            let q = slabmap.insert(i-1, i);
-            let q2 = slabmap.insert(i-2, i);
-            let q3 = slabmap.insert(i-3, i);
-            let q4 = slabmap.insert(i-4, i);
-            let q5 = slabmap.insert(i-5, i);
-            unsafe { slabmap.remove_unchecked(&(i-4)) };
-            let q6 = slabmap.insert(i-6, i);
-            unsafe { slabmap.remove_unchecked(&(i-5)) };
-            unsafe { slabmap.remove_unchecked(&(i-2)) };
-        }
-    });
-
-    println!("slabmap: {:?}", sm);
+    const COUNT: usize = 1 << 4;
+    let mut bitslab  = SlabMap::<usize, usize>::with_capacity(COUNT);
+    for i in 0..COUNT {
+        bitslab.insert(i, i);
+    }
+    
+    
 }
