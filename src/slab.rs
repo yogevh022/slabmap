@@ -8,7 +8,6 @@ const WORD_BITS: usize = Word::BITS as usize;
 
 type SlotOffset = u8;
 const NULL_SLOT_OFFSET: SlotOffset = SlotOffset::MAX;
-const MAX_SLOT_OFFSET: usize = NULL_SLOT_OFFSET as usize - 1;
 
 #[derive(Debug)]
 pub enum AllocError {
@@ -163,7 +162,7 @@ impl<T: Clone> BitmapSlab<T> {
             }
         }
 
-        Ok(ptr_offset / size_of::<T>())
+        Ok(ptr_offset)
     }
 
     pub fn insert(&mut self, value: T) -> AllocResult<usize> {
