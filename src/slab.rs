@@ -190,7 +190,7 @@ impl<T: Clone> BitmapSlab<T> {
         &self.mem[index]
     }
 
-    pub unsafe fn set_unsafe(&mut self, value: T, index: usize) {
+    pub(crate) unsafe fn set_unsafe(&mut self, value: T, index: usize) {
         self.mem[index] = value;
     }
 }
