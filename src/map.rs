@@ -33,10 +33,10 @@ impl<K: Hash + Eq, V: Clone> SlabMap<K, V> {
         }
     }
 
-    pub fn get(&self, key: &K) -> Option<&V> {
+    pub fn get(&self, key: &K) -> Option<(usize, &V)> {
         self.hashmap
             .get(key)
-            .and_then(|&idx| Some(self.slab.get(idx)))
+            .and_then(|&idx| Some((idx, self.slab.get(idx))))
     }
 
     pub fn remove(&mut self, key: &K) -> Option<(usize, V)> {
