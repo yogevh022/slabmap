@@ -190,6 +190,10 @@ impl<T: Clone> BitmapSlab<T> {
         &self.mem[index]
     }
 
+    pub fn get_mut(&mut self, index: usize) -> &mut T {
+        &mut self.mem[index]
+    }
+
     pub fn capacity(&self) -> usize {
         self.capacity
     }

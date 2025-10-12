@@ -39,6 +39,12 @@ impl<K: Hash + Eq, V: Clone> SlabMap<K, V> {
             .and_then(|&idx| Some((idx, self.slab.get(idx))))
     }
 
+    pub fn get_mut(&mut self, key: &K) -> Option<(usize, &mut V)> {
+        self.hashmap
+            .get(key)
+            .and_then(|&idx| Some((idx, self.slab.get_mut(idx))))
+    }
+
     pub fn remove(&mut self, key: &K) -> Option<(usize, V)> {
         let idx = self.hashmap.remove(key)?;
         self.slab.remove(idx).map(|v| (idx, v))
