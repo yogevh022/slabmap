@@ -15,8 +15,8 @@ impl<K: Hash + Eq, V: Clone> SlabMap<K, V> {
         Self { slab, hashmap }
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = (&K, &V)> {
-        self.hashmap.iter().map(|(k, &idx)| (k, self.slab.get(idx)))
+    pub fn iter(&self) -> impl Iterator<Item = (&K, usize, &V)> {
+        self.hashmap.iter().map(|(k, &idx)| (k, idx, self.slab.get(idx)))
     }
 
     pub fn insert(&mut self, key: K, value: V) -> usize {
