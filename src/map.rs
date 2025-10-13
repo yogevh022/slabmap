@@ -16,7 +16,18 @@ impl<K: Hash + Eq, V: Clone> SlabMap<K, V> {
     }
 
     pub fn iter(&self) -> impl Iterator<Item = (&K, usize, &V)> {
-        self.hashmap.iter().map(|(k, &idx)| (k, idx, self.slab.get(idx)))
+        self.hashmap
+            .iter()
+            .map(|(k, &idx)| (k, idx, self.slab.get(idx)))
+    }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = (&K, usize, &mut V)> {
+        self.hashmap.iter().map(|(k, &idx)| {
+            // SAFETY: this impl of the slab does NOT grow/shrink, this will never move
+            let value_ptr = &mut self.slab[idx] as *const V as *mut V;
+            let value = unsafe { &mut *value_ptr };
+            (k, idx, value)
+        })
     }
 
     pub fn insert(&mut self, key: K, value: V) -> usize {

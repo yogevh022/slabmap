@@ -1,4 +1,5 @@
 use std::ptr::slice_from_raw_parts_mut;
+use std::ops::{Index, IndexMut};
 use word_bitmap;
 use word_bitmap::BitMap;
 
@@ -187,11 +188,11 @@ impl<T: Clone> BitmapSlab<T> {
     }
 
     pub fn get(&self, index: usize) -> &T {
-        &self.mem[index]
+        &self[index]
     }
 
     pub fn get_mut(&mut self, index: usize) -> &mut T {
-        &mut self.mem[index]
+        &mut self[index]
     }
 
     pub fn capacity(&self) -> usize {
@@ -200,5 +201,19 @@ impl<T: Clone> BitmapSlab<T> {
 
     pub unsafe fn set_unsafe(&mut self, value: T, index: usize) {
         self.mem[index] = value;
+    }
+}
+
+impl<T: Clone> Index<usize> for BitmapSlab<T> {
+    type Output = T;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.mem[index]
+    }
+}
+
+impl<T: Clone> IndexMut<usize> for BitmapSlab<T> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.mem[index]
     }
 }
