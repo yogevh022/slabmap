@@ -61,6 +61,14 @@ impl<K: Hash + Eq, V: Clone> SlabMap<K, V> {
         self.slab.remove(idx).map(|v| (idx, v))
     }
 
+    pub fn capacity(&self) -> usize {
+        self.slab.capacity()
+    }
+
+    pub fn free(&self) -> usize {
+        self.slab.free()
+    }
+
     pub unsafe fn get_unchecked(&self, key: &K) -> &V {
         let idx = self.hashmap[key];
         self.slab.get(idx)

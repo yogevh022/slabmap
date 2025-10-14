@@ -3,7 +3,7 @@ mod map;
 
 use map::SlabMap;
 use std::hint::black_box;
-
+use slabmap::BitmapSlab;
 
 #[macro_export]
 macro_rules! timed {
@@ -29,19 +29,25 @@ fn main() {
 
     const COUNT: usize = 1 << 16;
     let mut bitslab  = SlabMap::<usize, usize>::with_capacity(COUNT);
-
-    let mut indices = Vec::new();
-    for i in 0..1<<12 {
-        let q = bitslab.insert(i, i*40000);
-        indices.push(q);
-    }
-
-    for i in 0..1<<8 {
-        let q = bitslab.remove(&(i*10));
-    }
+    let mut bmslab = BitmapSlab::<usize>::with_capacity(COUNT);
 
     for i in 0..1<<12 {
-        let q = bitslab.insert(i*2, i*2*40000);
-        indices.push(q);
+        println!("free: {}", bmslab.free());
+        bmslab.insert(i).unwrap();
     }
+
+    // let mut indices = Vec::new();
+    // for i in 0..1<<12 {
+    //     let q = bitslab.insert(i, i*40000);
+    //     indices.push(q);
+    // }
+    //
+    // for i in 0..1<<8 {
+    //     let q = bitslab.remove(&(i*10));
+    // }
+    //
+    // for i in 0..1<<12 {
+    //     let q = bitslab.insert(i*2, i*2*40000);
+    //     indices.push(q);
+    // }
 }

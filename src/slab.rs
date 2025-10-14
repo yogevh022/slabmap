@@ -198,8 +198,35 @@ impl<T: Clone> BitmapSlab<T> {
     pub fn capacity(&self) -> usize {
         self.capacity
     }
+    
+    pub fn free(&self) -> usize {
+        // this is an eh impl for debugging.
+        let mut result = 0usize;
+        for fli in 0..WORD_BITS {
+            if self.fl_bitmap.bit_at(fli) != 0 {
+                continue;
+            }
 
-    pub unsafe fn set_unsafe(&mut self, value: T, index: usize) {
+            let sl_word = &self.sl_bitmap[fli];
+            for sli in 0..WORD_BITS {
+                if sl_word.bit_at(sli) != 0 {
+                    continue;
+                }
+
+                let free_slot_index = Self::free_slot_index_from_mapping(fli, sli);
+                let mut next = self.free_slots[free_slot_index].next;
+                while next != NULL_SLOT_OFFSET {
+                    result += 1;
+                    let slot_offset = fli * self.fl_step + sli * self.sl_step + next as usize;
+                    next = unsafe { *(self.mem_ptr.add(slot_offset) as *const SlotOffset) };
+                }
+            }
+        }
+
+        result
+    }
+
+    pub(crate) unsafe fn set_unsafe(&mut self, value: T, index: usize) {
         self.mem[index] = value;
     }
 }
