@@ -61,6 +61,10 @@ impl<K: Hash + Eq, V: Clone> SlabMap<K, V> {
         self.slab.remove(idx).map(|v| (idx, v))
     }
 
+    pub fn contains_key(&self, key: &K) -> bool {
+        self.hashmap.contains_key(key)
+    }
+
     pub fn capacity(&self) -> usize {
         self.slab.capacity()
     }
