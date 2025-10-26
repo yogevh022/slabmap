@@ -73,6 +73,10 @@ impl<K: Hash + Eq, V: Clone> SlabMap<K, V> {
         self.slab.free()
     }
 
+    pub unsafe fn set_index(&mut self, index: usize, value: V) {
+        unsafe { self.slab.set_unsafe(value, index) };
+    }
+
     pub unsafe fn get_unchecked(&self, key: &K) -> &V {
         let idx = self.hashmap[key];
         self.slab.get(idx)
